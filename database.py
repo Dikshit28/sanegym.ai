@@ -36,17 +36,17 @@ def insert_data():
     cursor = conn.cursor()
 
     # Insert sample data into the "gymers" table
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (1, 'John', 'Doe', '1990-05-10', 'Male', 180, 75, 'Push-ups', 100)")
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (2, 'Jane', 'Smith', '1985-12-15', 'Female', 165, 62, 'Squats', 150)")
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (3, 'Michael', 'Johnson', '1992-07-20', 'Male', 175, 80, 'Deadlifts', 200)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (1, 'John', 'Doe', '1990-05-10', 'Male', 180, 75, 'Push-ups', 5)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (2, 'Jane', 'Smith', '1985-12-15', 'Female', 165, 62, 'Squats', 15)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (3, 'Michael', 'Johnson', '1992-07-20', 'Male', 175, 80, 'Deadlifts', 20)")
 
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (4, 'Johna', 'Doea', '1990-05-10', 'Male', 180, 75, 'Push-ups', 120)")
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (5, 'Janea', 'Smitha', '1985-12-15', 'Female', 165, 62, 'Squats', 130)")
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (6, 'Michaela', 'Johnsona', '1992-07-20', 'Male', 175, 80, 'Deadlifts', 190)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (4, 'Johna', 'Doea', '1990-05-10', 'Male', 180, 75, 'Push-ups', 12)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (5, 'Janea', 'Smitha', '1985-12-15', 'Female', 165, 62, 'Squats', 13)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (6, 'Michaela', 'Johnsona', '1992-07-20', 'Male', 175, 80, 'Deadlifts', 19)")
 
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (7, 'Johnb', 'Doeb', '1990-05-10', 'Male', 180, 75, 'Push-ups', 130)")
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (8, 'Jane', 'Smith', '1985-12-15', 'Female', 165, 62, 'Squats', 170)")
-    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (9, 'Michael', 'Johnson', '1992-07-20', 'Male', 175, 80, 'Deadlifts', 210)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (7, 'Johnb', 'Doeb', '1990-05-10', 'Male', 180, 75, 'Push-ups', 13)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (8, 'Jane', 'Smith', '1985-12-15', 'Female', 165, 62, 'Squats', 17)")
+    cursor.execute("INSERT INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (9, 'Michael', 'Johnson', '1992-07-20', 'Male', 175, 80, 'Deadlifts', 21)")
 
     # Commit the changes
     conn.commit()
@@ -62,18 +62,19 @@ def insert_new(account_no, first_name, last_name, dob, gender, height, weight, e
     # Create a cursor object to execute SQL commands
     cursor = conn.cursor()
 
-    # Check if the person already exists in the database
+    # Check if the person already exists in the database with the same account number and exercise name
     cursor.execute(
-        "SELECT high_score FROM gymers WHERE account_no = ?", (account_no,))
+        "SELECT high_score FROM gymers WHERE account_no = ? AND exercise_name = ?", (account_no, exercise_name))
     previous_score = cursor.fetchone()
 
-    # Insert the values if the person doesn't exist or if the previous score is lower
+    # Insert the values if the person doesn't exist with the same account number and exercise name,
+    # or if the previous score is lower
     if previous_score is None or high_score > previous_score[0]:
         cursor.execute("INSERT OR REPLACE INTO gymers (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                        (account_no, first_name, last_name, dob, gender, height, weight, exercise_name, high_score))
         print("Data inserted successfully.")
     else:
-        print("Previous score is higher. Skipping insertion.")
+        print("Previous score is higher or the person already exists with the same account number and exercise name. Skipping insertion.")
 
     # Commit the changes
     conn.commit()
@@ -91,7 +92,7 @@ def get_high_scores():
 
     # Retrieve the top 2 scores for each exercise category
     cursor.execute('''
-        SELECT exercise_name, first_name, last_name, high_score
+        SELECT account_no, exercise_name, first_name, last_name, high_score
         FROM gymers
         WHERE account_no IN (
             SELECT account_no
@@ -108,6 +109,7 @@ def get_high_scores():
 
     # Close the connection
     conn.close()
+
     return list(data)
 
 
@@ -120,9 +122,9 @@ def get_top_scores():
 
     # Retrieve the top 5 scores for each exercise category
     cursor.execute('''
-        SELECT exercise_name, first_name, last_name, high_score
+        SELECT account_no, exercise_name, first_name, last_name, high_score
         FROM (
-            SELECT exercise_name, first_name, last_name, high_score,
+            SELECT account_no, exercise_name, first_name, last_name, high_score,
             ROW_NUMBER() OVER(PARTITION BY exercise_name ORDER BY high_score DESC) AS rank
             FROM gymers
         ) AS ranked_scores
@@ -132,6 +134,7 @@ def get_top_scores():
 
     # Fetch all the rows returned by the query
     data = cursor.fetchall()
+
     # Close the connection
     conn.close()
 
@@ -141,9 +144,9 @@ def get_top_scores():
 if __name__ == '__main__':
     # create_database()
     # insert_data()
-    # insert_new(10, 'John', 'Doe', '1990-05-10','Male', 180, 75, 'Push-ups', 120)
-    # insert_new(11, 'Jane', 'Smith', '1985-12-15','Female', 165, 62, 'Squats', 180)
-    # insert_new(12, 'Michael', 'Johnson', '1992-07-20','Male', 175, 80, 'Deadlifts', 190)
+    #insert_new(10, 'John', 'Doe', '1990-05-10','Male', 180, 75, 'Push-ups', 12)
+    #insert_new(11, 'Jane', 'Smith', '1985-12-15','Female', 165, 62, 'Squats', 18)
+    #insert_new(12, 'Michael', 'Johnson', '1992-07-20','Male', 175, 80, 'Deadlifts', 19)
 
     #data = get_high_scores()
     # print(data)
